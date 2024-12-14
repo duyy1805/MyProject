@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Counter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #123456;
+            color: #ffffff;
+        }
+
+        h1 {
+            font-size: 100px;
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <h1 id="counter">0</h1>
+
+    <script>
+        const counterElement = document.getElementById("counter");
+        const ws = new WebSocket("ws://192.168.8.79:8080");
+
+        ws.onopen = () => {
+            console.log("Connected to WebSocket server");
+        };
+
+        ws.onmessage = (message) => {
+            const data = JSON.parse(message.data);
+            counterElement.textContent = data.count; // Cập nhật số đếm
+        };
+
+        ws.onerror = (error) => {
+            console.error("WebSocket error:", error.message);
+        };
+
+        ws.onclose = () => {
+            console.log("Disconnected from WebSocket server");
+        };
+    </script>
+</body>
+
+</html>
