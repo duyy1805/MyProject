@@ -7,7 +7,7 @@ import {
   View,
   Dimensions,
 } from "react-native";
-
+// android:usesCleartextTraffic="true"
 import { ThemedView } from "@/components/ThemedView";
 import io from "socket.io-client";
 import { stringify } from "flatted";
@@ -41,7 +41,6 @@ export default function HomeScreen() {
   const handlePress = () => {
     const newCount = count + 1; // Tính toán giá trị count mới
     setCount(newCount); // Cập nhật giá trị count ở phía client
-    console.log(socket);
     // Gửi giá trị mới lên server
     socket.emit("increment", { count: newCount });
   };
@@ -53,9 +52,6 @@ export default function HomeScreen() {
         <Text style={styles.buttonText}>Duyệt lệnh</Text>
       </TouchableOpacity>
       <View style={{ padding: 10, backgroundColor: "#ddd", borderRadius: 5 }}>
-        <Text style={{ color: "#000", fontSize: 12, textAlign: "center" }}>
-          {`Namespace: ${socket.nsp}`}
-        </Text>
         <Text style={{ color: "#000", fontSize: 12, textAlign: "center" }}>
           {`Connected: ${socket.connected}`}
         </Text>
