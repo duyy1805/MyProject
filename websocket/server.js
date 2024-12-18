@@ -1,34 +1,41 @@
-const WebSocket = require('ws');
+const http = require("http");
+const socketIo = require("socket.io");
 
-const PORT = 8080; // Port chạy WebSocket server
-const wss = new WebSocket.Server({ port: PORT });
-
-console.log(`WebSocket Server is running on ws://localhost:${PORT}`);
-
+const PORT = 8080;
 let currentCount = 0;
 
-wss.on('connection', (ws) => {
-    console.log('A new client connected.');
+// Tạo HTTP server
+const server = http.createServer();
+const io = socketIo(server, {
+    cors: {
+        origin: "*", // Cho phép mọi nguồn truy cập (hoặc điều chỉnh tùy vào dự án)
+    },
+    pingTimeout: 60000, // Thời gian chờ tối đa (ms) trước khi đóng kết nối do không nhận được phản hồi
+    pingInterval: 25000, // Khoảng thời gian gửi gói ping để giữ kết nối
+    transports: ["websocket", "polling"],
+});
 
-    // Gửi số đếm hiện tại cho client khi kết nối
-    ws.send(JSON.stringify({ count: currentCount }));
+console.log(`Socket.IO server is running on http://localhost:${PORT}`);
 
-    // Nhận thông tin từ client
-    ws.on('message', (message) => {
+io.on("connection", (socket) => {
+    console.log("A new client connected.");
 
-        const data = JSON.parse(message);
-        console.log('Received:', data);
-        if (data.type === 'increment') {
-            currentCount = data.count;
-            wss.clients.forEach((client) => {
-                if (client.readyState === WebSocket.OPEN) {
-                    client.send(JSON.stringify({ count: currentCount }));
-                }
-            });
-        }
+    socket.emit("updateCount", { count: currentCount });
+
+    socket.on("increment", (data) => {
+        console.log("Received count from client:", data.count);
+
+        currentCount = data.count;
+
+        io.emit("updateCount", { count: currentCount });
     });
 
-    ws.on('close', () => {
-        console.log('Client disconnected.');
+    socket.on("disconnect", () => {
+        console.log("Client disconnected.");
     });
+});
+
+// Lắng nghe cổng
+server.listen(PORT, () => {
+    console.log(`Server listening on port ${PORT}`);
 });

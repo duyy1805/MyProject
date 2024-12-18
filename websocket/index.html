@@ -21,33 +21,68 @@
         h1 {
             font-size: 100px;
             margin: 0;
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .grow {
+            transform: scale(1.1);
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 20px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #2ebe7c;
+            color: white;
         }
     </style>
 </head>
 
 <body>
     <h1 id="counter">0</h1>
+    <button id="incrementButton">Tăng Count</button>
 
+    <!-- Thêm Socket.IO client -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script>
         const counterElement = document.getElementById("counter");
-        const ws = new WebSocket("ws://192.168.8.79:8080");
+        const incrementButton = document.getElementById("incrementButton");
 
-        ws.onopen = () => {
-            console.log("Connected to WebSocket server");
-        };
+        const socket = io("http://localhost:8080");
 
-        ws.onmessage = (message) => {
-            const data = JSON.parse(message.data);
-            counterElement.textContent = data.count; // Cập nhật số đếm
-        };
+        let count = 0;
 
-        ws.onerror = (error) => {
-            console.error("WebSocket error:", error.message);
-        };
+        // Khi kết nối thành công
+        socket.on("connect", () => {
+            console.log("Connected to Socket.IO server");
+        });
 
-        ws.onclose = () => {
-            console.log("Disconnected from WebSocket server");
-        };
+        socket.on("updateCount", (data) => {
+            count = data.count;
+            counterElement.textContent = count;
+
+            counterElement.classList.add("grow");
+            setTimeout(() => counterElement.classList.remove("grow"), 200);
+        });
+
+        incrementButton.addEventListener("click", () => {
+            count += 1;
+            counterElement.textContent = count;
+
+            socket.emit("increment", { count: count });
+        });
+
+        // Xử lý khi kết nối lỗi
+        socket.on("connect_error", (error) => {
+            console.error("Connection error:", error.message);
+        });
+
+        socket.on("disconnect", () => {
+            console.log("Disconnected from server");
+        });
     </script>
 </body>
 
