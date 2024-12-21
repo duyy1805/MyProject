@@ -46,11 +46,11 @@
     <button id="incrementButton">Tăng Count</button>
 
     <!-- Thêm Socket.IO client -->
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.1/socket.io.slim.js"></script>
     <script>
         const counterElement = document.getElementById("counter");
         const incrementButton = document.getElementById("incrementButton");
-
+        //27.71.231.202
         const socket = io("http://localhost:8080");
 
         let count = 0;

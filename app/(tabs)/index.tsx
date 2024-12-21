@@ -3,16 +3,13 @@ import {
   StyleSheet,
   TouchableOpacity,
   Text,
-  SafeAreaView,
   View,
   Dimensions,
 } from "react-native";
-// android:usesCleartextTraffic="true"
 import { ThemedView } from "@/components/ThemedView";
 import io from "socket.io-client";
-import { stringify } from "flatted";
 //27.71.231.202
-const socket = io("http://27.71.231.202:8080");
+const socket = io("http://27.71.231.202:3500");
 const deviceHeight = Dimensions.get("window").height;
 
 export default function HomeScreen() {
@@ -21,27 +18,25 @@ export default function HomeScreen() {
 
   useEffect(() => {
     socket.on("updateCount", (data) => {
-      console.log("Soket", socket);
       setCount(data.count);
     });
 
-    // Lắng nghe lỗi từ socket
     socket.on("connect_error", (err) => {
-      setError(err.message); // Lưu thông báo lỗi
+      setError(err.message);
     });
 
     socket.on("error", (err) => {
       console.log(err.message);
     });
-
+    socket.on("disconnect", (reason) => {
+      console.log(`Disconnected from server. Reason: ${reason}`);
+    });
     return () => socket.disconnect();
   }, []);
 
-  // Hàm xử lý khi nhấn nút
   const handlePress = () => {
-    const newCount = count + 1; // Tính toán giá trị count mới
-    setCount(newCount); // Cập nhật giá trị count ở phía client
-    // Gửi giá trị mới lên server
+    const newCount = count + 1;
+    setCount(newCount);
     socket.emit("increment", { count: newCount });
   };
 
@@ -51,8 +46,8 @@ export default function HomeScreen() {
       <TouchableOpacity style={styles.button} onPress={handlePress}>
         <Text style={styles.buttonText}>Duyệt lệnh</Text>
       </TouchableOpacity>
-      <View style={{ padding: 10, backgroundColor: "#ddd", borderRadius: 5 }}>
-        <Text style={{ color: "#000", fontSize: 12, textAlign: "center" }}>
+      <View style={styles.statusContainer}>
+        <Text style={styles.statusText}>
           {`Connected: ${socket.connected}`}
         </Text>
       </View>
@@ -88,11 +83,14 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginTop: 100,
   },
-  itemText: {
-    fontSize: 40,
-    color: "#FFFFFF",
+  statusContainer: {
+    padding: 10,
+    backgroundColor: "#ddd",
+    borderRadius: 5,
+  },
+  statusText: {
+    color: "#000",
+    fontSize: 12,
     textAlign: "center",
-    fontWeight: "bold",
-    marginTop: 100,
   },
 });

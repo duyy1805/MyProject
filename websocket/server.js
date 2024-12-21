@@ -8,11 +8,8 @@ let currentCount = 0;
 const server = http.createServer();
 const io = socketIo(server, {
     cors: {
-        origin: "*", // Cho phép mọi nguồn truy cập (hoặc điều chỉnh tùy vào dự án)
+        origin: "*",  // Cho phép tất cả các nguồn kết nối (có thể thay bằng một địa chỉ cụ thể nếu cần)
     },
-    pingTimeout: 60000, // Thời gian chờ tối đa (ms) trước khi đóng kết nối do không nhận được phản hồi
-    pingInterval: 25000, // Khoảng thời gian gửi gói ping để giữ kết nối
-    transports: ["websocket", "polling"],
 });
 
 console.log(`Socket.IO server is running on http://localhost:${PORT}`);
@@ -23,10 +20,15 @@ io.on("connection", (socket) => {
     socket.emit("updateCount", { count: currentCount });
 
     socket.on("increment", (data) => {
-        console.log("Received count from client:", data.count);
+        // Kiểm tra nếu `data` là chuỗi, thì parse nó
+        const parsedData = typeof data === "string" ? JSON.parse(data) : data;
 
-        currentCount = data.count;
+        console.log("Received count from client:", parsedData);
 
+        // Cập nhật giá trị count
+        currentCount = parsedData.count;
+
+        // Phát lại sự kiện `updateCount` tới tất cả client
         io.emit("updateCount", { count: currentCount });
     });
 
@@ -35,7 +37,33 @@ io.on("connection", (socket) => {
     });
 });
 
-// Lắng nghe cổng
+// Hàm đặt lại giá trị count về 0
+function resetCount() {
+    currentCount = 0;
+    io.emit("updateCount", { count: currentCount }); // Cập nhật cho tất cả client
+    console.log("Count has been reset to 0 at midnight.");
+}
+
+// Tính thời gian đến 0h sáng hôm sau
+function scheduleMidnightReset() {
+    const now = new Date();
+    const midnight = new Date();
+    midnight.setHours(24, 0, 0, 0);
+    const timeToMidnight = midnight - now;
+
+    // Đặt timeout để reset lần đầu
+    setTimeout(() => {
+        resetCount();
+
+        // Sau đó, đặt interval để reset mỗi ngày
+        setInterval(resetCount, 24 * 60 * 60 * 1000); // 24 giờ
+    }, timeToMidnight);
+}
+
+// Lập lịch đặt lại count
+scheduleMidnightReset();
+
+
 server.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
 });
