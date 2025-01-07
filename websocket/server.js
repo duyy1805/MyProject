@@ -1,9 +1,9 @@
 const http = require("http");
 const socketIo = require("socket.io");
 
-const PORT = 8080;
+const PORT = 3500;
 let currentCount = 0;
-
+let chartData = [];
 // Tạo HTTP server
 const server = http.createServer();
 const io = socketIo(server, {
@@ -18,19 +18,25 @@ io.on("connection", (socket) => {
     console.log("A new client connected.");
 
     socket.emit("updateCount", { count: currentCount });
-
-    socket.on("increment", (data) => {
+    socket.emit("sendChart", { count: currentCount });
+    socket.on("sendChart", (data) => {
         // Kiểm tra nếu `data` là chuỗi, thì parse nó
-        const parsedData = typeof data === "string" ? JSON.parse(data) : data;
-
-        console.log("Received count from client:", parsedData);
-
-        // Cập nhật giá trị count
-        currentCount = parsedData.count;
-
-        // Phát lại sự kiện `updateCount` tới tất cả client
-        io.emit("updateCount", { count: currentCount });
+        console.log(data);
+        chartData = data;
+        io.emit("sendChart", { chart: chartData });
     });
+    // socket.on("increment", (data) => {
+    //     // Kiểm tra nếu `data` là chuỗi, thì parse nó
+    //     const parsedData = typeof data === "string" ? JSON.parse(data) : data;
+
+    //     console.log("Received count from client:", parsedData);
+
+    //     // Cập nhật giá trị count
+    //     currentCount = parsedData.count;
+
+    //     // Phát lại sự kiện `updateCount` tới tất cả client
+    //     io.emit("updateCount", { count: currentCount });
+    // });
 
     socket.on("disconnect", () => {
         console.log("Client disconnected.");

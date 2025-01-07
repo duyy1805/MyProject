@@ -12,12 +12,24 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 const deviceHeight = Dimensions.get("window").height;
 
 export default function HomeScreen() {
-  const [selectedPlan, setSelectedPlan] = useState("plan1");
-  const [counts, setCounts] = useState({
-    plan1: 0,
-    plan2: 0,
-    plan3: 0,
-  });
+  const data = [
+    { label: "Lều", code: "KH01", numberOfPlan: 220 },
+    { label: "Balo", code: "KH02", numberOfPlan: 120 },
+    { label: "Túi xách", code: "KH03", numberOfPlan: 320 },
+    { label: "Đèn pin", code: "KH04", numberOfPlan: 50 },
+    { label: "Lều lớn", code: "KH05", numberOfPlan: 80 },
+  ];
+  const dataWithIndex = data.map((item, idx) => ({
+    ...item, // Sao chép các thuộc tính hiện tại
+    index: idx + 1, // Thêm trường index, bắt đầu từ 1
+  }));
+  const initialCounts = dataWithIndex.reduce((acc, item) => {
+    acc[item.code] = 0; // Gán giá trị mặc định là 0
+    return acc;
+  }, {});
+
+  const [selectedPlan, setSelectedPlan] = useState("KH01");
+  const [counts, setCounts] = useState(initialCounts);
   const [isFocus, setIsFocus] = useState(false);
 
   const handlePress = () => {
@@ -26,12 +38,6 @@ export default function HomeScreen() {
       [selectedPlan]: prevCounts[selectedPlan] + 1,
     }));
   };
-
-  const data = [
-    { label: "Lều", value: "plan1" },
-    { label: "Balo", value: "plan2" },
-    { label: "Túi xách", value: "plan3" },
-  ];
 
   return (
     <View style={styles.container}>
@@ -50,17 +56,17 @@ export default function HomeScreen() {
           inputSearchStyle={styles.inputSearchStyle}
           iconStyle={styles.iconStyle}
           data={data}
-          search
+          // search
           maxHeight={300}
           labelField="label"
-          valueField="value"
+          valueField="code"
           placeholder={!isFocus ? "Chọn kế hoạch" : "..."}
           searchPlaceholder="Tìm kiếm..."
           value={selectedPlan}
           onFocus={() => setIsFocus(true)}
           onBlur={() => setIsFocus(false)}
           onChange={(item) => {
-            setSelectedPlan(item.value);
+            setSelectedPlan(item.code);
             setIsFocus(false);
           }}
           renderLeftIcon={() => (
